@@ -1,44 +1,16 @@
-name: DevOps CI Pipeline
+docker-build-and-push:
+  needs: test
+  runs-on: ubuntu-latest
 
-on:
-  push:
-    branches: [ main ]
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-jobs:
+    - name: Login to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-  test:
-    runs-on: ubuntu-latest
+    - name: Build Docker Image
+      run: docker build -t jainhj/calculator-app .
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install Dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Run Tests
-        run: pytest
-
-
-  docker-build-and-push:
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/calculator-app .
-
-      - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/calculator-app
+    - name: Push Docker Image
+      run: docker push jainhj/calculator-app
